@@ -32,16 +32,15 @@ class TScheduler : public scheduler::Abstract
     using TaskNode  = typename TaskGraph::Node;
 public:
 
-    TScheduler() : isRunning{false} {}
+    TScheduler() : _isRunning{false} {}
 
     template<class RETURN_TYPE, class... ARGS>
     TaskNode& makeTask()
     {
         using Task                 = TTask<RETURN_TYPE, ARGS...>;
         using TaskFactory          = pool::TFactory<Task, CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE>;
-        using TaskFactorySingleton = Singleton<TaskFactory>;
 
-        Task& task = TaskFactorySingleton::instance().make(*this);
+        Task& task = Singleton<TaskFactory>::instance().make(*this);
 
         return _taskGraph.makeNode(&task);
     }
@@ -52,7 +51,7 @@ public:
         _taskGraph.attach(lhs,
                           rhs);
 
-        if (COSCHE_LIKELY(isRunning))
+        if (COSCHE_LIKELY(_isRunning))
         {
             auto&& lhsTask = *(lhs.value);
 
@@ -69,16 +68,16 @@ public:
 
     void run()
     {
-        isRunning = true;
+        _isRunning = true;
 
-        while (!_taskGraph.empty() || checkFutures())
+        while (!_taskGraph.empty() || hasFutures())
         {
             auto&& topTask = *(_taskGraph.top().value);
 
             topTask._context = std::move(std::get<0>(topTask._context(&topTask)));
         }
 
-        isRunning = false;
+        _isRunning = false;
     }
 
     template <class RETURN_TYPE, class REP, class PERIOD>
@@ -88,17 +87,10 @@ public:
     {
         using Future                 = TFuture<RETURN_TYPE, REP, PERIOD>;
         using FutureFactory          = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
-        using FutureFactorySingleton = Singleton<FutureFactory>;
 
-        auto&& theFuture = FutureFactorySingleton::instance().make(std::move(future),
-                                                                   pollingDelay);
-
-        _futuresToTasks.emplace(&theFuture, &taskNode);
-
-        attach(taskNode,
-               taskNode);
-
-        _futuresToTasks.erase(&theFuture);
+        auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
+                                                                     pollingDelay);
+        registerFuture(&theFuture, taskNode);
 
         return theFuture.value().get();
     }
@@ -112,20 +104,13 @@ public:
     {
         using Future                 = future::TScoped<RETURN_TYPE, REP1, PERIOD1>;
         using FutureFactory          = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
-        using FutureFactorySingleton = Singleton<FutureFactory>;
 
-        auto&& theFuture = FutureFactorySingleton::instance().make(std::move(future),
-                                                                   pollingDelay,
-                                                                   timeoutDuration);
-
-        _futuresToTasks.emplace(&theFuture, &taskNode);
-
-        attach(taskNode,
-               taskNode);
+        auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
+                                                                     pollingDelay,
+                                                                     timeoutDuration);
+        registerFuture(&theFuture, taskNode);
 
         using namespace std::chrono_literals;
-
-        _futuresToTasks.erase(&theFuture);
 
         return (theFuture.value().wait_for(0s) == std::future_status::ready) ?
             std::optional<RETURN_TYPE>{theFuture.value().get()}              :
@@ -139,7 +124,17 @@ public:
 
 private:
 
-    bool checkFutures()
+    void registerFuture(future::Abstract* const futurePtr, TaskNode& taskNode)
+    {
+        _futuresToTasks.emplace(futurePtr, &taskNode);
+
+        attach(taskNode,
+               taskNode);
+
+        _futuresToTasks.erase(futurePtr);
+    }
+
+    bool hasFutures()
     {
         bool returnValue = !_futuresToTasks.empty();
 
@@ -157,13 +152,10 @@ private:
         return returnValue;
     }
 
+    bool                                             _isRunning;
+    TaskGraph                                        _taskGraph;
     std::unordered_map<future::Abstract*, TaskNode*> _futuresToTasks;
 
-    TaskGraph _taskGraph;
-
-public:
-
-    bool isRunning;
 };
 
 } // namespace cosche
