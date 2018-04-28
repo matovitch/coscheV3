@@ -37,8 +37,8 @@ public:
     template<class RETURN_TYPE, class... ARGS>
     TaskNode& makeTask()
     {
-        using Task                 = TTask<RETURN_TYPE, ARGS...>;
-        using TaskFactory          = pool::TFactory<Task, CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE>;
+        using Task        = TTask<RETURN_TYPE, ARGS...>;
+        using TaskFactory = pool::TFactory<Task, CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE>;
 
         Task& task = Singleton<TaskFactory>::instance().make(*this);
 
@@ -85,8 +85,8 @@ public:
                        std::future<RETURN_TYPE>&& future,
                        const std::chrono::duration<REP, PERIOD>& pollingDelay)
     {
-        using Future                 = TFuture<RETURN_TYPE, REP, PERIOD>;
-        using FutureFactory          = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
+        using Future        = TFuture<RETURN_TYPE, REP, PERIOD>;
+        using FutureFactory = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
 
         auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
                                                                      pollingDelay);
@@ -102,8 +102,8 @@ public:
                                       const std::chrono::duration<REP1, PERIOD1>& pollingDelay,
                                       const std::chrono::duration<REP2, PERIOD2>& timeoutDuration)
     {
-        using Future                 = future::TScoped<RETURN_TYPE, REP1, PERIOD1>;
-        using FutureFactory          = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
+        using Future        = future::TScoped<RETURN_TYPE, REP1, PERIOD1>;
+        using FutureFactory = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
 
         auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
                                                                      pollingDelay,
