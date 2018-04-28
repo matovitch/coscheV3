@@ -31,7 +31,7 @@ int main()
     graph.attach(nodeB,
                  nodeA);
 
-    while (!graph.empty() && !graph.isCyclic())
+    while (!graph.empty())
     {
         std::cout << graph.top().value << std::endl;
         graph.pop();
