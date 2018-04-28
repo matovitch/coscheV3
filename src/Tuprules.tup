@@ -1,0 +1,6 @@
+LIBRARY_NAME = libcosche.a
+
+SRC           = $(ROOT)/src
+BOOST_CONTEXT = $(SRC)/boost/context 
+
+!ar = |> ar crs %o %f |>

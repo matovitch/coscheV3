@@ -1,0 +1,21 @@
+ROOT = $(TUP_CWD)
+
+CX = clang++
+
+CXFLAGS  = -Wall
+CXFLAGS += -pedantic
+CXFLAGS += -std=c++17
+
+ifeq (@(DEBUG),y)
+    CXFLAGS += -g
+else
+    CXFLAGS += -O3
+endif
+
+CXFLAGS += -I $(ROOT)/include
+
+LDFLAGS += -l pthread
+LDFLAGS += -l cosche
+LDFLAGS += -L $(ROOT)
+
+!cx = |> $(CX) $(CXFLAGS) -c %f -o %o |> %B.o

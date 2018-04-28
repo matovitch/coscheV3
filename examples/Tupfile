@@ -1,0 +1,7 @@
+include_rules
+
+CPPS = $(EXAMPLES)/*.cpp
+OBJS = $(EXAMPLES)/*.o
+
+: foreach $(CPPS)               |> !cx |> %B.o
+: foreach $(OBJS) | ../<cosche> |> !ld |> %B ../<examples>

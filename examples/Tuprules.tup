@@ -1,0 +1,3 @@
+EXAMPLES = $(ROOT)/examples
+
+!ld = |> $(CX) %f $(LDFLAGS) -o %o |>
