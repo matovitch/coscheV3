@@ -3,7 +3,6 @@
 
 #include "cosche/scheduler.hpp"
 #include "cosche/utils.hpp"
-#include "cosche/task.hpp"
 
 static constexpr std::size_t ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE = 4096;
 static constexpr std::size_t CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE = 4096;

@@ -20,7 +20,7 @@ class TBuffer
 
 public:
 
-    TBuffer() : _tail{_data.data() + SIZE}
+    TBuffer() : _tail{_data.data() + SIZE * SIZEOF }
     {
         const std::size_t shift = reinterpret_cast<std::size_t>(_data.data()) % ALIGNOF;
 
@@ -28,11 +28,6 @@ public:
 
         _head = (shift) ? dataPtr + ALIGNOF - shift
                         : dataPtr;
-
-        for (auto&& byte : _data)
-        {
-            byte = 0;
-        }
     }
 
     TYPE* allocate()

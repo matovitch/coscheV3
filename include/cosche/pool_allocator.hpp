@@ -45,7 +45,7 @@ public:
         if (COSCHE_UNLIKELY(typePtr == nullptr))
         {
             _buffers.emplace_back(std::make_unique<Buffer>());
-            allocate();
+            return _buffers.back()->allocate();
         }
 
         return typePtr;

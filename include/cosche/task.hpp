@@ -111,7 +111,36 @@ public:
 
         (*_functionOpt)();
     }
-    
+
+private:
+
+    std::optional<std::function<void()>> _functionOpt;
+};
+
+
+template<>
+class TTask<void> : public task::Abstract
+{
+
+public:
+
+    TTask(scheduler::Abstract& scheduler) : task::Abstract{scheduler} {}
+
+    void assign(std::function<void()>&& function)
+    {
+        _functionOpt.emplace(std::move(function));
+    }
+
+    void run()
+    {
+        if (!_functionOpt)
+        {
+            return;
+        }
+
+        (*_functionOpt)();
+    }
+
 private:
 
     std::optional<std::function<void()>> _functionOpt;
