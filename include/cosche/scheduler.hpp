@@ -1,5 +1,6 @@
 #pragma once
 
+#include "future_task_pair.hpp"
 #include "future.hpp"
 #include "graph.hpp"
 #include "task.hpp"
@@ -90,7 +91,10 @@ public:
 
         auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
                                                                      pollingDelay);
-        registerFuture(&theFuture, taskNode);
+        _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
+
+        attach(taskNode,
+               taskNode);
 
         return theFuture.value().get();
     }
@@ -108,7 +112,10 @@ public:
         auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
                                                                      pollingDelay,
                                                                      timeoutDuration);
-        registerFuture(&theFuture, taskNode);
+        _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
+
+        attach(taskNode,
+               taskNode);
 
         using namespace std::chrono_literals;
 
@@ -124,28 +131,24 @@ public:
 
 private:
 
-    void registerFuture(future::Abstract* const futurePtr, TaskNode& taskNode)
-    {
-        _futuresToTasks.emplace(futurePtr, &taskNode);
-
-        attach(taskNode,
-               taskNode);
-
-        _futuresToTasks.erase(futurePtr);
-    }
-
     bool hasFutures()
     {
-        bool returnValue = !_futuresToTasks.empty();
+        bool returnValue = !_futuresTaskPairs.empty();
 
-        for (const auto& [futurePtr, taskNodePtr] : _futuresToTasks)
+        for (auto&& futureTaskPair : _futuresTaskPairs)
         {
-            auto&& task = *taskNodePtr;
+            const auto& [futurePtr, taskNodePtr] = futureTaskPair;
+
+            auto&& taskNode = *taskNodePtr;
 
             if (futurePtr->ready())
             {
-                detach(task, 
-                       task);
+                detach(taskNode,
+                       taskNode);
+
+                futureTaskPair = _futuresTaskPairs.back();
+
+                _futuresTaskPairs.pop_back();
             }
         }
 
@@ -154,7 +157,7 @@ private:
 
     bool                                             _isRunning;
     TaskGraph                                        _taskGraph;
-    std::unordered_map<future::Abstract*, TaskNode*> _futuresToTasks;
+    std::vector<FutureTaskPair>               _futuresTaskPairs;
 
 };
 

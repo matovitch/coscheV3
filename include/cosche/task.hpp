@@ -42,12 +42,6 @@ public:
 
     virtual ~Abstract();
 
-    template <class RETURN_TYPE, class... ARGS>
-    void assign(std::function<RETURN_TYPE(ARGS...)>&& function)
-    {
-        reinterpret_cast<TTask<RETURN_TYPE, ARGS...>*>(this)->assign(std::move(function));
-    }
-
 private:
 
     using Context = boost::context::execution_context<Abstract*>;

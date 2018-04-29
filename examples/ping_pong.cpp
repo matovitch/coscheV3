@@ -63,10 +63,10 @@ int main()
             std::cout << "pong" << std::endl;
         };
 
-    scheduler.attach(pongTask, pingTask); // to be sure to start with ping
-
     cosche::assignWork(pingTask, std::move(pingWork));
     cosche::assignWork(pongTask, std::move(pongWork));
+
+    scheduler.attach(pongTask, pingTask); // to be sure to start with ping
 
     scheduler.run();
 
