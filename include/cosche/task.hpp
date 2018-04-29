@@ -46,10 +46,11 @@ private:
 
     using Context = boost::context::execution_context<Abstract*>;
 
-    static Context entryPoint(Context&& context, Abstract* task);
+    static Context entryPoint(Context&& context, Abstract* const task);
 
     Context              _context;
     scheduler::Abstract& _scheduler;
+
 };
 
 } // namespace task
@@ -62,9 +63,9 @@ public:
 
     TTask(scheduler::Abstract& scheduler) : task::Abstract{scheduler} {}
 
-    void assign(std::function<RETURN_TYPE(ARGS...)>&& function)
+    void assign(std::function<RETURN_TYPE(ARGS...)>&& function, ARGS&&... args)
     {
-        _functionOpt.emplace(function);
+        _functionOpt.emplace(std::bind(std::move(function), args...));
     }
 
     void run()
@@ -84,8 +85,8 @@ public:
 
 private:
 
-    std::optional<std::function<RETURN_TYPE(ARGS...)>> _functionOpt;
-    std::promise<RETURN_TYPE>                          _promise;
+    std::optional<std::function<RETURN_TYPE()>> _functionOpt;
+    std::promise<RETURN_TYPE>                   _promise;
 };
 
 template<class... ARGS>
@@ -96,9 +97,9 @@ public:
 
     TTask(scheduler::Abstract& scheduler) : task::Abstract{scheduler} {}
 
-    void assign(std::function<void(ARGS...)>&& function)
+    void assign(std::function<void(ARGS...)>&& function, ARGS&&... args)
     {
-        _functionOpt.emplace(function);
+        _functionOpt.emplace(std::bind(std::move(function), args...));
     }
 
     void run()
@@ -113,7 +114,7 @@ public:
     
 private:
 
-    std::optional<std::function<void(ARGS...)>> _functionOpt;
+    std::optional<std::function<void()>> _functionOpt;
 };
 
 } // namespace cosche

@@ -30,8 +30,9 @@ class TScheduler : public scheduler::Abstract
     using TaskGraph = TGraph<task::Abstract*,
                              ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE>;
 
-    using TaskNode  = typename TaskGraph::Node;
 public:
+
+    using TaskNode  = typename TaskGraph::Node;
 
     TScheduler() : _isRunning{false} {}
 
@@ -52,12 +53,22 @@ public:
         _taskGraph.attach(lhs,
                           rhs);
 
-        if (COSCHE_LIKELY(_isRunning))
-        {
-            auto&& lhsTask = *(lhs.value);
+        releaseContext(lhs);
+    }
 
-            lhsTask._context = std::move(std::get<0>(lhsTask._context(&lhsTask)));
-        }
+    void attachBatch(TaskNode& taskNode, const std::vector<TaskNode*>& dependers)
+    {
+        _taskGraph.attachBatch(taskNode, dependers);
+
+        releaseContext(taskNode);
+    }
+
+    template <std::size_t BATCH_SIZE>
+    void attachBatch(TaskNode& taskNode, const std::array<TaskNode*, BATCH_SIZE>& dependers)
+    {
+        _taskGraph.template attachBatch<BATCH_SIZE>(taskNode, dependers);
+
+        releaseContext(taskNode);
     }
 
     void detach(TaskNode& lhs,
@@ -153,6 +164,16 @@ private:
         }
 
         return returnValue;
+    }
+
+    void releaseContext(TaskNode& taskNode)
+    {
+        if (COSCHE_LIKELY(_isRunning))
+        {
+            auto&& task = *(taskNode.value);
+
+            task._context = std::move(std::get<0>(task._context(&task)));
+        }
     }
 
     bool                                             _isRunning;

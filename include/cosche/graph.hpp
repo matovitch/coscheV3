@@ -39,13 +39,18 @@ public:
         lhs._dependers.insert(&rhs);
         rhs._dependees.insert(&lhs);
 
-        const auto& fit = _pendings.find(&lhs);
+        block(lhs);
+    }
 
-        if (COSCHE_LIKELY(fit != _pendings.end()))
-        {
-            _pendings.erase(fit);
-            _blockeds.insert(&lhs);
-        }
+    void attachBatch(Node& node, const std::vector<Node*>& dependers)
+    {
+        attachBatch<std::vector<Node*>>(node, dependers);
+    }
+
+    template <std::size_t BATCH_SIZE>
+    void attachBatch(Node& node, const std::array<Node*, BATCH_SIZE>& dependers)
+    {
+        attachBatch<std::array<Node*, BATCH_SIZE>>(node, dependers);
     }
 
     void detach(Node& lhs,
@@ -133,6 +138,34 @@ public:
     }
 
 private:
+
+    void block(Node& node)
+    {
+        const auto& fit = _pendings.find(&node);
+
+        if (COSCHE_LIKELY(fit != _pendings.end()))
+        {
+            _pendings.erase(fit);
+            _blockeds.insert(&node);
+        }
+    }
+
+    template <class NODE_PTR_CONTAINER>
+    void attachBatch(Node& node, const NODE_PTR_CONTAINER& dependers)
+    {
+        if (COSCHE_UNLIKELY(dependers.empty()))
+        {
+            return;
+        }
+
+        for (const auto depender : dependers)
+        {
+            node     ._dependers.insert(depender);
+            depender->_dependees.insert(&node);
+        }
+
+        block(node);
+    }
 
     using NodeFactory = pool::TFactory<Node, NODE_ALLOCATOR_BUFFER_SIZE>;
 

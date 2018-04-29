@@ -18,4 +18,4 @@ LDFLAGS += -l pthread
 LDFLAGS += -l cosche
 LDFLAGS += -L $(ROOT)
 
-!cx = |> $(CX) $(CXFLAGS) -c %f -o %o |> %B.o
+!cx = |> $(CX) $(CXFLAGS) -c %f -o %o |>

@@ -4,11 +4,14 @@ OBJS = $(SRC)/*.o
 
 CPPS = $(SRC)/*.cpp
 
-CPPS += $(BOOST_CONTEXT)/asm/ontop_x86_64_sysv_elf_gas.S
-CPPS += $(BOOST_CONTEXT)/asm/make_x86_64_sysv_elf_gas.S
-CPPS += $(BOOST_CONTEXT)/asm/jump_x86_64_sysv_elf_gas.S
-CPPS += $(BOOST_CONTEXT)/posix/stack_traits.cpp
-CPPS += $(BOOST_CONTEXT)/execution_context.cpp
+BOOST_CONTEXT_SRC += $(BOOST_CONTEXT)/asm/ontop_x86_64_sysv_elf_gas.S
+BOOST_CONTEXT_SRC += $(BOOST_CONTEXT)/asm/make_x86_64_sysv_elf_gas.S
+BOOST_CONTEXT_SRC += $(BOOST_CONTEXT)/asm/jump_x86_64_sysv_elf_gas.S
+BOOST_CONTEXT_SRC += $(BOOST_CONTEXT)/posix/stack_traits.cpp
+BOOST_CONTEXT_SRC += $(BOOST_CONTEXT)/execution_context.cpp
 
-: foreach $(CPPS) |> !cx |> %B.o
-: $(OBJS) |> ar crs %o %f |> ../$(LIBRARY_NAME) ../<cosche>
+
+: foreach $(BOOST_CONTEXT_SRC)      |> !cx_boost_context |> %B.o <boost_context>
+: foreach $(CPPS) | <boost_context> |> !cx               |> %B.o
+
+: $(OBJS) |> !ar |> ../$(LIBRARY_NAME) ../<cosche>

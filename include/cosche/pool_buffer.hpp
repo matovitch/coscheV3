@@ -28,6 +28,11 @@ public:
 
         _head = (shift) ? dataPtr + ALIGNOF - shift
                         : dataPtr;
+
+        for (auto&& byte : _data)
+        {
+            byte = 0;
+        }
     }
 
     TYPE* allocate()

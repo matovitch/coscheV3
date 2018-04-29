@@ -9,7 +9,7 @@ namespace task
 {
 
 Abstract::Context Abstract::entryPoint(Abstract::Context&& context, 
-                                       Abstract* task)
+                                       Abstract* const task)
 {
     task->_context = std::move(context);
 
