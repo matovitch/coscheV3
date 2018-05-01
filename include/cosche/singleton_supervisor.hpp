@@ -5,6 +5,9 @@
 namespace cosche
 {
 
+template <class TYPE>
+class TSingleton;
+
 namespace singleton
 {
 
@@ -15,7 +18,11 @@ class Supervisor
 
 public:
 
-    static void registerSingleton(Abstract* const singleton);
+    template <class TYPE>
+    static void registerSingleton()
+    {
+        _singletons.push_back(new TSingleton<TYPE>);
+    }
 
     static void clean();
 

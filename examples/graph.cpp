@@ -1,16 +1,15 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "cosche/graph.hpp"
-#include "cosche/utils.hpp"
-
-static constexpr std::size_t GRAPH_NODE_ALLOCATOR_BUFFER_SIZE = 4096;
+#include "cosche/cosche.hpp"
 
 int main()
 {
     std::cout << "Welcome to coscheV3!" << std::endl;
 
-    using Graph = cosche::TGraph<char, GRAPH_NODE_ALLOCATOR_BUFFER_SIZE>;
+    using GraphTraits = cosche::graph::TMakeTraits<char>;
+
+    using Graph = cosche::TGraph<GraphTraits>;
 
     Graph graph;
 

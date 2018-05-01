@@ -6,13 +6,13 @@
 namespace cosche
 {
 
-template <class, std::size_t>
+template <class>
 class TGraph;
 
 template <class TYPE>
 class TNode
 {
-    template <class, std::size_t>
+    template <class>
     friend class TGraph;
 
 private:

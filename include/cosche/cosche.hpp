@@ -1,5 +1,6 @@
 #pragma once
 
+#include "scheduler.hpp"
 #include "node.hpp"
 #include "task.hpp"
 
@@ -17,5 +18,7 @@ void assignWork(TNode<task::Abstract*>& task,
 }
 
 void cleanUp();
+
+using Scheduler = TScheduler<scheduler::TMakeTraits<>>;
 
 } // namespace cosche

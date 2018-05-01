@@ -1,18 +1,11 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "cosche/scheduler.hpp"
-#include "cosche/utils.hpp"
-
-static constexpr std::size_t ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE = 4096;
-static constexpr std::size_t CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE = 4096;
-static constexpr std::size_t        FUTURE_ALLOCATOR_BUFFER_SIZE = 4096;
+#include "cosche/cosche.hpp"
 
 int main()
 {
-    cosche::TScheduler<ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE, 
-                       CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE, 
-                              FUTURE_ALLOCATOR_BUFFER_SIZE> scheduler;
+    cosche::Scheduler scheduler;
 
     auto&& pingTask = scheduler.makeTask<void>();
     auto&& pongTask = scheduler.makeTask<void>();

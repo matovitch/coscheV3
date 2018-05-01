@@ -1,7 +1,8 @@
 #pragma once
 
-#include "pool_factory.hpp"
 #include "likelyhood.hpp"
+#include "singleton.hpp"
+#include "factory.hpp"
 #include "node.hpp"
 
 #include <unordered_set>
@@ -10,17 +11,29 @@
 namespace cosche
 {
 
-template <class       TYPE,
-          std::size_t NODE_ALLOCATOR_BUFFER_SIZE>
+namespace graph
+{
+
+template <class Type, std::size_t NODE_ALLOCATOR_BUFFER_SIZE = 1>
+struct TMakeTraits
+{
+    using Node = TNode<Type>;
+    using NodeFactoryTraits = factory::TMakeTraits<Node, NODE_ALLOCATOR_BUFFER_SIZE>;
+};
+
+} // namespace graph
+
+template <class GraphTraits>
 class TGraph
 {
+    using NodeFactoryTraits = typename GraphTraits::NodeFactoryTraits;
 
 public:
     
-    using Node        = TNode<TYPE>;
+    using Node = typename GraphTraits::Node;
 
     TGraph() :
-        _nodeFactory{Singleton<NodeFactory>::instance()}
+        _nodeFactory{TSingleton<NodeFactory>::instance()}
     {}
 
     template <class... ARGS>
@@ -167,7 +180,7 @@ private:
         block(node);
     }
 
-    using NodeFactory = pool::TFactory<Node, NODE_ALLOCATOR_BUFFER_SIZE>;
+    using NodeFactory = TFactory<NodeFactoryTraits>;
 
     std::unordered_set<Node*> _pendings;
     std::unordered_set<Node*> _blockeds;

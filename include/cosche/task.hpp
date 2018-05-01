@@ -16,9 +16,7 @@ struct Abstract;
 
 } // namespace scheduler
 
-template <std::size_t,
-          std::size_t,
-          std::size_t>
+template <class>
 class TScheduler;
 
 template<class RETURN_TYPE, class... ARGS>
@@ -29,9 +27,7 @@ namespace task
 
 class Abstract
 {
-    template <std::size_t,
-              std::size_t,
-              std::size_t>
+    template <class>
     friend class cosche::TScheduler;
 
 public:

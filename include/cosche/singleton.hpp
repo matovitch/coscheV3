@@ -19,7 +19,7 @@ struct Abstract
 } //namespace singleton
 
 template <class TYPE>
-class Singleton : singleton::Abstract
+class TSingleton : public singleton::Abstract
 {
 
 public:
@@ -30,7 +30,7 @@ public:
         
         if (COSCHE_UNLIKELY(_instance == nullptr))
         {
-            Supervisor::registerSingleton(new Singleton<TYPE>);
+            Supervisor::registerSingleton<TYPE>();
             _instance = new TYPE;
         }
 
@@ -49,6 +49,6 @@ private:
 };
 
 template <class TYPE>
-TYPE* Singleton<TYPE>::_instance = nullptr;
+TYPE* TSingleton<TYPE>::_instance = nullptr;
 
 } // namespace cosche

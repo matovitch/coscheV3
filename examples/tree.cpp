@@ -1,22 +1,13 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "cosche/scheduler.hpp"
-#include "cosche/utils.hpp"
+#include "cosche/cosche.hpp"
 
-static constexpr std::size_t ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE = 4096;
-static constexpr std::size_t CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE = 4096;
-static constexpr std::size_t        FUTURE_ALLOCATOR_BUFFER_SIZE = 4096;
+static constexpr unsigned TREE_DEPTH = 2;
 
-static constexpr unsigned TREE_DEPTH = 5;
+using TaskNode = typename cosche::Scheduler::TaskNode;
 
-using Scheduler = cosche::TScheduler<ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE, 
-                                     CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE, 
-                                            FUTURE_ALLOCATOR_BUFFER_SIZE>;
-
-using TaskNode = typename Scheduler::TaskNode;
-
-std::function<void()> makeRecursiveWork(const unsigned stackDepth, Scheduler& scheduler, TaskNode* const task)
+std::function<void()> makeRecursiveWork(const unsigned stackDepth, cosche::Scheduler& scheduler, TaskNode* const task)
 {
     if (stackDepth == TREE_DEPTH)
     {
@@ -44,7 +35,7 @@ std::function<void()> makeRecursiveWork(const unsigned stackDepth, Scheduler& sc
 
 int main()
 {
-    Scheduler scheduler;
+    cosche::Scheduler scheduler;
 
     auto&& rootTask = scheduler.makeTask<void>();
 

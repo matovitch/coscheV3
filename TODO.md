@@ -1,0 +1,3 @@
+- Use a proper stack allocator for boost::execution_context
+- Make a small set optimization for the task graph
+- Support raw functors to avoir std::bind/std::function penalty

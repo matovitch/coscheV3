@@ -1,6 +1,7 @@
 #pragma once
 
 #include "future_task_pair.hpp"
+#include "factory.hpp"
 #include "future.hpp"
 #include "graph.hpp"
 #include "task.hpp"
@@ -20,15 +21,33 @@ struct Abstract
     virtual void pop() = 0;
 };
 
+template <std::size_t ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE = 1,
+          std::size_t CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE = 1,
+          std::size_t        FUTURE_ALLOCATOR_BUFFER_SIZE = 1>
+struct TMakeTraits
+{
+    using TaskGraphTraits = graph::TMakeTraits<task::Abstract*, ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE>;
+
+    template <class Task>
+    using TMakeTaskFactoryTraits = factory::TMakeTraits<Task, CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE>;
+
+    template <class Future>
+    using TMakeFutureFactoryTraits = factory::TMakeTraits<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
+};
+
 } // namespace scheduler
 
-template <std::size_t ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE,
-          std::size_t CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE,
-          std::size_t        FUTURE_ALLOCATOR_BUFFER_SIZE>
+template <class SchedulerTraits = scheduler::TMakeTraits<>>
 class TScheduler : public scheduler::Abstract
 {
-    using TaskGraph = TGraph<task::Abstract*,
-                             ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE>;
+    using TaskGraphTraits = typename SchedulerTraits::TaskGraphTraits;
+    using TaskGraph       = TGraph<TaskGraphTraits>;
+
+    template <class Task>
+    using TMakeTaskFactoryTraits = typename SchedulerTraits::template TMakeTaskFactoryTraits<Task>;
+
+    template <class Future>
+    using TMakeFutureFactoryTraits = typename SchedulerTraits::template TMakeFutureFactoryTraits<Future>;
 
 public:
 
@@ -39,10 +58,11 @@ public:
     template<class RETURN_TYPE, class... ARGS>
     TaskNode& makeTask()
     {
-        using Task        = TTask<RETURN_TYPE, ARGS...>;
-        using TaskFactory = pool::TFactory<Task, CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE>;
+        using Task              = TTask<RETURN_TYPE, ARGS...>;
+        using TaskFactoryTraits = TMakeTaskFactoryTraits<Task>;
+        using TaskFactory       = TFactory<TaskFactoryTraits>;
 
-        Task& task = Singleton<TaskFactory>::instance().make(*this);
+        Task& task = TSingleton<TaskFactory>::instance().make(*this);
 
         return _taskGraph.makeNode(&task);
     }
@@ -97,10 +117,11 @@ public:
                        std::future<RETURN_TYPE>&& future,
                        const std::chrono::duration<REP, PERIOD>& pollingDelay)
     {
-        using Future        = TFuture<RETURN_TYPE, REP, PERIOD>;
-        using FutureFactory = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
+        using Future              = TFuture<RETURN_TYPE, REP, PERIOD>;
+        using FutureFactoryTraits = TMakeFutureFactoryTraits<Future>;
+        using FutureFactory       = TFactory<FutureFactoryTraits>;
 
-        auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
+        auto&& theFuture = TSingleton<FutureFactory>::instance().make(std::move(future),
                                                                      pollingDelay);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
 
@@ -117,10 +138,11 @@ public:
                                       const std::chrono::duration<REP1, PERIOD1>& pollingDelay,
                                       const std::chrono::duration<REP2, PERIOD2>& timeoutDuration)
     {
-        using Future        = future::TScoped<RETURN_TYPE, REP1, PERIOD1>;
-        using FutureFactory = pool::TFactory<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
+        using Future              = future::TScoped<RETURN_TYPE, REP1, PERIOD1>;
+        using FutureFactoryTraits = TMakeFutureFactoryTraits<Future>;
+        using FutureFactory       = TFactory<FutureFactoryTraits>;
 
-        auto&& theFuture = Singleton<FutureFactory>::instance().make(std::move(future),
+        auto&& theFuture = TSingleton<FutureFactory>::instance().make(std::move(future),
                                                                      pollingDelay,
                                                                      timeoutDuration);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
@@ -179,7 +201,6 @@ private:
     bool                                             _isRunning;
     TaskGraph                                        _taskGraph;
     std::vector<FutureTaskPair>               _futuresTaskPairs;
-
 };
 
 } // namespace cosche
