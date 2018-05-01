@@ -9,7 +9,7 @@ int main()
 
     auto&& rootTask = scheduler.makeTask<void>();
 
-    std::function<void()> rootWork = 
+    std::function<void()> rootWork =
         [&]()
         {
             auto&& leafTask = scheduler.makeTask<void>();

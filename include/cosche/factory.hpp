@@ -31,7 +31,7 @@ class TFactory
 
 public:
 
-    TFactory() : 
+    TFactory() :
         _allocator{TSingleton<Allocator>::instance()}
     {}
 

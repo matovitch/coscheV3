@@ -72,7 +72,7 @@ struct BOOST_CONTEXT_DECL ecv1_activation_record {
         fctx{ fctx_ },
         sctx( sctx_ ), // sctx{ sctx_ } - clang-3.6: no viable conversion from 'boost::context::stack_context' to 'std::size_t'
         main_ctx{ false } {
-    } 
+    }
 
     virtual ~ecv1_activation_record() = default;
 

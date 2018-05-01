@@ -27,7 +27,7 @@ public:
     static TYPE& instance()
     {
         using namespace singleton;
-        
+
         if (COSCHE_UNLIKELY(_instance == nullptr))
         {
             Supervisor::registerSingleton<TYPE>();

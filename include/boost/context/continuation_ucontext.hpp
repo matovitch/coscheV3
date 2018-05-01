@@ -97,7 +97,7 @@ struct BOOST_CONTEXT_DECL activation_record {
     activation_record( stack_context sctx_) noexcept :
         sctx( sctx_ ),
         main_ctx( false ) {
-    } 
+    }
 
     virtual ~activation_record() {
 	}
@@ -256,7 +256,7 @@ public:
             c = boost::context::detail::invoke( fn_, std::move( c) );
 #else
             c = std::invoke( fn_, std::move( c) );
-#endif  
+#endif
         } catch ( forced_unwind const& ex) {
             c = Ctx{ ex.from };
         }
@@ -306,7 +306,7 @@ static activation_record * create_context1( StackAlloc && salloc, Fn && fn) {
 
 template< typename Ctx, typename StackAlloc, typename Fn >
 static activation_record * create_context2( preallocated palloc, StackAlloc && salloc, Fn && fn) {
-    typedef capture_record< Ctx, StackAlloc, Fn >  capture_t; 
+    typedef capture_record< Ctx, StackAlloc, Fn >  capture_t;
 
     // reserve space for control structure
     void * storage = reinterpret_cast< void * >(

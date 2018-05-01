@@ -8,7 +8,7 @@ namespace cosche
 namespace task
 {
 
-Abstract::Context Abstract::entryPoint(Abstract::Context&& context, 
+Abstract::Context Abstract::entryPoint(Abstract::Context&& context,
                                        Abstract* const task)
 {
     task->_context = std::move(context);

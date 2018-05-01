@@ -11,7 +11,7 @@ std::function<void()> makeRecursiveWork(const unsigned stackDepth, cosche::Sched
 {
     if (stackDepth == TREE_DEPTH)
     {
-        return 
+        return
             [&]()
             {
                 std::cout << "Here is a leaf!" << std::endl;

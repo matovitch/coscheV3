@@ -38,7 +38,7 @@ public:
     }
 
     std::future<T>& value()
-    { 
+    {
         return _future;
     }
 
@@ -58,9 +58,9 @@ struct TFuture : public future::Abstract
 public:
 
     TFuture(std::future<T>&&                          future,
-            const std::chrono::duration<Rep, Period>& pollingDelay) : 
+            const std::chrono::duration<Rep, Period>& pollingDelay) :
         _future       { std::move(future) },
-        _pollingDelay { pollingDelay      } 
+        _pollingDelay { pollingDelay      }
     {}
 
     bool ready() const override
@@ -69,7 +69,7 @@ public:
     }
 
     std::future<T>& value()
-    { 
+    {
         return _future;
     }
 

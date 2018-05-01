@@ -116,7 +116,7 @@ public:
     }
 
     template <class ReturnType, class Rep, class Period>
-    ReturnType attach(TaskNode& taskNode, 
+    ReturnType attach(TaskNode& taskNode,
                       std::future<ReturnType>&& future,
                       const std::chrono::duration<Rep, Period>& pollingDelay)
     {
@@ -133,9 +133,9 @@ public:
         return theFuture.value().get();
     }
 
-    template <class ReturnType, class Rep1, class Period1, 
+    template <class ReturnType, class Rep1, class Period1,
                                 class Rep2, class Period2>
-    std::optional<ReturnType> attach(TaskNode& taskNode, 
+    std::optional<ReturnType> attach(TaskNode& taskNode,
                                      std::future<ReturnType>&& future,
                                      const std::chrono::duration<Rep1, Period1>& pollingDelay,
                                      const std::chrono::duration<Rep2, Period2>& timeoutDuration)

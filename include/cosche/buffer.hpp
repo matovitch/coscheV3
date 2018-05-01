@@ -51,7 +51,7 @@ class TBuffer : public buffer::TAbstract<typename BufferTraits::AbstractTraits>
 {
     using BufferAbstractTraits = typename BufferTraits::AbstractTraits;
     using BufferNextTraits     = typename BufferTraits::NextTraits;
-    
+
     static constexpr std::size_t SIZEOF    = BufferAbstractTraits::BLOCK_SIZE;
     static constexpr std::size_t ALIGNOF   = BufferAbstractTraits::BLOCK_ALIGN;
     static constexpr std::size_t BYTE_SIZE = BufferTraits::SIZE * SIZEOF;

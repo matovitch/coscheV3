@@ -29,7 +29,7 @@ class TGraph
     using NodeFactoryTraits = typename GraphTraits::NodeFactoryTraits;
 
 public:
-    
+
     using Node = typename GraphTraits::Node;
 
     TGraph() :
@@ -121,7 +121,7 @@ public:
         {
             cycle.push_back(node);
             node = *(node->_dependers.begin());
-        } 
+        }
         while (node != cycle.front());
 
         return cycle;
