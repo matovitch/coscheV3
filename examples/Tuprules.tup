@@ -1,3 +1,7 @@
 EXAMPLES = $(ROOT)/examples
 
+LDFLAGS += -l pthread
+LDFLAGS += -l cosche
+LDFLAGS += -L $(ROOT)
+
 !ld = |> $(CX) %f $(LDFLAGS) -o %o |>

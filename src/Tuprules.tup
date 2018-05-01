@@ -3,5 +3,4 @@ LIBRARY_NAME = libcosche.a
 SRC           = $(ROOT)/src
 BOOST_CONTEXT = $(SRC)/boost/context
 
-!cx_boost_context = |> $(CX) $(CXFLAGS) $(BOOST_CONTEXT_CXFLAGS) -c %f -o %o |>
-!ar               = |> ar crs %o %f |>
+!ar = |> ar crs %o %f |>
