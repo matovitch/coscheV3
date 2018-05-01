@@ -2,6 +2,7 @@
 
 #include "likelyhood.hpp"
 
+#include <functional>
 #include <cstdint>
 #include <memory>
 #include <array>
@@ -20,6 +21,8 @@ struct TAbstract
     virtual void* allocateBlock() = 0;
 
     virtual std::unique_ptr<TAbstract<AbstractTraits>> makeBufferNext() const = 0;
+
+    virtual void clean(const std::function<void(void*)>& destructor) = 0;
 
     virtual ~TAbstract() {}
 };
@@ -60,12 +63,7 @@ public:
 
     TBuffer() : _tail{_data.data() + BYTE_SIZE}
     {
-        const std::size_t shift = reinterpret_cast<std::size_t>(_data.data()) % ALIGNOF;
-
-        uint8_t* const dataPtr = _data.data();
-
-        _head = (shift) ? dataPtr + ALIGNOF - shift
-                        : dataPtr;
+        _head = pointerToFirstBlock();
     }
 
     void* allocateBlock() override
@@ -87,7 +85,28 @@ public:
         return std::make_unique<BufferNext>();
     }
 
+    void clean(const std::function<void(void*)>& destructor) override
+    {
+        uint8_t* head = pointerToFirstBlock();
+
+        while (head != _head)
+        {
+            destructor(head);
+            head += SIZEOF;
+        }
+    }
+
 private:
+
+    uint8_t* pointerToFirstBlock()
+    {
+        const std::size_t shift = reinterpret_cast<std::size_t>(_data.data()) % ALIGNOF;
+
+        uint8_t* const dataPtr = _data.data();
+
+        return (shift) ? dataPtr + ALIGNOF - shift
+                       : dataPtr;
+    }
 
     uint8_t*                       _head;
     std::array<uint8_t, BYTE_SIZE> _data;

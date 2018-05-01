@@ -19,7 +19,7 @@ struct Abstract;
 template <class>
 class TScheduler;
 
-template<class RETURN_TYPE, class... ARGS>
+template<class RETURN_TYPE>
 class TTask;
 
 namespace task
@@ -51,7 +51,7 @@ private:
 
 } // namespace task
 
-template<class RETURN_TYPE, class... ARGS>
+template<class RETURN_TYPE>
 class TTask : public task::Abstract
 {
 
@@ -59,9 +59,9 @@ public:
 
     TTask(scheduler::Abstract& scheduler) : task::Abstract{scheduler} {}
 
-    void assign(std::function<RETURN_TYPE(ARGS...)>&& function, ARGS&&... args)
+    void assign(std::function<RETURN_TYPE()>&& function)
     {
-        _functionOpt.emplace(std::bind(std::move(function), args...));
+        _functionOpt.emplace(std::move(function));
     }
 
     void run()
@@ -83,34 +83,6 @@ private:
 
     std::optional<std::function<RETURN_TYPE()>> _functionOpt;
     std::promise<RETURN_TYPE>                   _promise;
-};
-
-template<class... ARGS>
-class TTask<void, ARGS...> : public task::Abstract
-{
-
-public:
-
-    TTask(scheduler::Abstract& scheduler) : task::Abstract{scheduler} {}
-
-    void assign(std::function<void(ARGS...)>&& function, ARGS&&... args)
-    {
-        _functionOpt.emplace(std::bind(std::move(function), args...));
-    }
-
-    void run()
-    {
-        if (!_functionOpt)
-        {
-            return;
-        }
-
-        (*_functionOpt)();
-    }
-
-private:
-
-    std::optional<std::function<void()>> _functionOpt;
 };
 
 

@@ -44,7 +44,8 @@ public:
         {
             ptr = reinterpret_cast<void*>(_recycleds.back());
             _recycleds.pop_back();
-            reinterpret_cast<Type*>(ptr)->~Type();
+            destroy(ptr);
+            //reinterpret_cast<Type*>(ptr)->~Type();
         }
         else
         {
@@ -61,7 +62,17 @@ public:
         _recycleds.push_back(typePtr);
     }
 
+    ~TFactory()
+    {
+        _allocator.clean(&destroy);
+    }
+
 private:
+
+    static void destroy(void* ptr)
+    {
+        reinterpret_cast<Type*>(ptr)->~Type();
+    }
 
     Allocator&         _allocator;
     std::vector<Type*> _recycleds;

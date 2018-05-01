@@ -3,6 +3,7 @@
 #include "likelyhood.hpp"
 #include "buffer.hpp"
 
+#include <functional>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -52,6 +53,14 @@ public:
         }
 
         return blockPtr;
+    }
+
+    void clean(const std::function<void(void*)>& destructor)
+    {
+        for (auto&& buffer : _buffers)
+        {
+            buffer->clean(destructor);
+        }
     }
 
 private:

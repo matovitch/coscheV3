@@ -49,16 +49,19 @@ class TScheduler : public scheduler::Abstract
     template <class Future>
     using TMakeFutureFactoryTraits = typename SchedulerTraits::template TMakeFutureFactoryTraits<Future>;
 
+    template <class Future>
+    using TMakeFutureFactory = TFactory<TMakeFutureFactoryTraits<Future>>;
+
 public:
 
     using TaskNode  = typename TaskGraph::Node;
 
     TScheduler() : _isRunning{false} {}
 
-    template<class RETURN_TYPE, class... ARGS>
+    template<class ReturnType>
     TaskNode& makeTask()
     {
-        using Task              = TTask<RETURN_TYPE, ARGS...>;
+        using Task              = TTask<ReturnType>;
         using TaskFactoryTraits = TMakeTaskFactoryTraits<Task>;
         using TaskFactory       = TFactory<TaskFactoryTraits>;
 
@@ -112,17 +115,16 @@ public:
         _isRunning = false;
     }
 
-    template <class RETURN_TYPE, class REP, class PERIOD>
-    RETURN_TYPE attach(TaskNode& taskNode, 
-                       std::future<RETURN_TYPE>&& future,
-                       const std::chrono::duration<REP, PERIOD>& pollingDelay)
+    template <class ReturnType, class Rep, class Period>
+    ReturnType attach(TaskNode& taskNode, 
+                      std::future<ReturnType>&& future,
+                      const std::chrono::duration<Rep, Period>& pollingDelay)
     {
-        using Future              = TFuture<RETURN_TYPE, REP, PERIOD>;
-        using FutureFactoryTraits = TMakeFutureFactoryTraits<Future>;
-        using FutureFactory       = TFactory<FutureFactoryTraits>;
+        using Future        = TFuture<ReturnType, Rep, Period>;
+        using FutureFactory = TMakeFutureFactory<Future>;
 
         auto&& theFuture = TSingleton<FutureFactory>::instance().make(std::move(future),
-                                                                     pollingDelay);
+                                                                      pollingDelay);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
 
         attach(taskNode,
@@ -131,20 +133,19 @@ public:
         return theFuture.value().get();
     }
 
-    template <class RETURN_TYPE, class REP1, class PERIOD1, 
-                                 class REP2, class PERIOD2>
-    std::optional<RETURN_TYPE> attach(TaskNode& taskNode, 
-                                      std::future<RETURN_TYPE>&& future,
-                                      const std::chrono::duration<REP1, PERIOD1>& pollingDelay,
-                                      const std::chrono::duration<REP2, PERIOD2>& timeoutDuration)
+    template <class ReturnType, class Rep1, class Period1, 
+                                class Rep2, class Period2>
+    std::optional<ReturnType> attach(TaskNode& taskNode, 
+                                     std::future<ReturnType>&& future,
+                                     const std::chrono::duration<Rep1, Period1>& pollingDelay,
+                                     const std::chrono::duration<Rep2, Period2>& timeoutDuration)
     {
-        using Future              = future::TScoped<RETURN_TYPE, REP1, PERIOD1>;
-        using FutureFactoryTraits = TMakeFutureFactoryTraits<Future>;
-        using FutureFactory       = TFactory<FutureFactoryTraits>;
+        using Future        = future::TScoped<ReturnType, Rep1, Period1>;
+        using FutureFactory = TMakeFutureFactory<Future>;
 
         auto&& theFuture = TSingleton<FutureFactory>::instance().make(std::move(future),
-                                                                     pollingDelay,
-                                                                     timeoutDuration);
+                                                                      pollingDelay,
+                                                                      timeoutDuration);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
 
         attach(taskNode,
@@ -153,8 +154,8 @@ public:
         using namespace std::chrono_literals;
 
         return (theFuture.value().wait_for(0s) == std::future_status::ready) ?
-            std::optional<RETURN_TYPE>{theFuture.value().get()}              :
-            std::optional<RETURN_TYPE>{};
+            std::optional<ReturnType>{theFuture.value().get()}              :
+            std::optional<ReturnType>{};
     }
 
     void pop() override

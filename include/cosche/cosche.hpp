@@ -9,12 +9,11 @@
 namespace cosche
 {
 
-template <class RETURN_TYPE, class... ARGS>
+template <class RETURN_TYPE>
 void assignWork(TNode<task::Abstract*>& task,
-                std::function<RETURN_TYPE(ARGS...)>&& work,
-                ARGS&&... args)
+                std::function<RETURN_TYPE()>&& work)
 {
-    reinterpret_cast<TTask<RETURN_TYPE, ARGS...>*>(task.value)->assign(std::move(work), std::move(args)...);
+    reinterpret_cast<TTask<RETURN_TYPE>*>(task.value)->assign(std::move(work));
 }
 
 void cleanUp();
