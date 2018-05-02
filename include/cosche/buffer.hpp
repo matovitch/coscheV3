@@ -27,37 +27,44 @@ struct TAbstract
     virtual ~TAbstract() {}
 };
 
-template <class Type>
-struct TMakeAbstractTraitsFromType
+template <std::size_t BUFFER_BLOCK_SIZE,
+          std::size_t BUFFER_BLOCK_ALIGN>
+struct AbstractTraits
 {
-    static constexpr std::size_t BLOCK_SIZE  =  sizeof(Type);
-    static constexpr std::size_t BLOCK_ALIGN = alignof(Type);
+    static constexpr std::size_t BLOCK_SIZE  = BUFFER_BLOCK_SIZE;
+    static constexpr std::size_t BLOCK_ALIGN = BUFFER_BLOCK_ALIGN;
 };
 
-template <class Type, std::size_t BUFFER_SIZE = 1>
-struct TMakeTraitsFromType
+template <std::size_t BUFFER_BLOCK_SIZE,
+          std::size_t BUFFER_BLOCK_ALIGN,
+          std::size_t BUFFER_SIZE>
+struct TTraits
 {
     static constexpr std::size_t SIZE = BUFFER_SIZE + 1;
 
-    using AbstractTraits = TMakeAbstractTraitsFromType<Type>;
-    using NextTraits     = TMakeTraitsFromType<Type, std::min(SIZE << 1, MAX_SIZE)>;
+    using Abstract = AbstractTraits<BUFFER_BLOCK_SIZE,
+                                    BUFFER_BLOCK_ALIGN>;
+
+    using Next = TTraits<BUFFER_BLOCK_SIZE,
+                         BUFFER_BLOCK_ALIGN,
+                         std::min(SIZE << 1, MAX_SIZE)>;
 };
 
+template <class Type>
+using TMakeTraitsFromType = TTraits< sizeof(Type),
+                                    alignof(Type), 1>;
 } // namespace buffer
 
 
 template <class BufferTraits>
-class TBuffer : public buffer::TAbstract<typename BufferTraits::AbstractTraits>
+class TBuffer : public buffer::TAbstract<typename BufferTraits::Abstract>
 {
-    using BufferAbstractTraits = typename BufferTraits::AbstractTraits;
-    using BufferNextTraits     = typename BufferTraits::NextTraits;
-
-    static constexpr std::size_t SIZEOF    = BufferAbstractTraits::BLOCK_SIZE;
-    static constexpr std::size_t ALIGNOF   = BufferAbstractTraits::BLOCK_ALIGN;
+    static constexpr std::size_t SIZEOF    = BufferTraits::Abstract::BLOCK_SIZE;
+    static constexpr std::size_t ALIGNOF   = BufferTraits::Abstract::BLOCK_ALIGN;
     static constexpr std::size_t BYTE_SIZE = BufferTraits::SIZE * SIZEOF;
 
-    using BufferAbstract = buffer::TAbstract<BufferAbstractTraits>;
-    using BufferNext     = TBuffer<BufferNextTraits>;
+    using BufferAbstract = buffer::TAbstract < typename BufferTraits::Abstract >;
+    using BufferNext     = TBuffer           < typename BufferTraits::Next     >;
 
 public:
 

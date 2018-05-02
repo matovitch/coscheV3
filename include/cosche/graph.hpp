@@ -14,11 +14,11 @@ namespace cosche
 namespace graph
 {
 
-template <class Type, std::size_t NODE_ALLOCATOR_BUFFER_SIZE = 1>
+template <class Type>
 struct TMakeTraits
 {
     using Node = TNode<Type>;
-    using NodeFactoryTraits = factory::TMakeTraits<Node, NODE_ALLOCATOR_BUFFER_SIZE>;
+    using NodeFactory = TFactory<factory::TMakeTraits<Node>>;
 };
 
 } // namespace graph
@@ -26,7 +26,7 @@ struct TMakeTraits
 template <class GraphTraits>
 class TGraph
 {
-    using NodeFactoryTraits = typename GraphTraits::NodeFactoryTraits;
+    using NodeFactory = typename GraphTraits::NodeFactory;
 
 public:
 
@@ -49,8 +49,8 @@ public:
     void attach(Node& lhs,
                 Node& rhs)
     {
-        lhs._dependers.insert(&rhs);
-        rhs._dependees.insert(&lhs);
+        lhs._dependees.insert(&rhs);
+        rhs._dependers.insert(&lhs);
 
         block(lhs);
     }
@@ -69,10 +69,10 @@ public:
     void detach(Node& lhs,
                 Node& rhs)
     {
-        lhs._dependers.erase(&rhs);
-        rhs._dependees.erase(&lhs);
+        lhs._dependees.erase(&rhs);
+        rhs._dependers.erase(&lhs);
 
-        if (lhs._dependers.empty())
+        if (lhs._dependees.empty())
         {
             const auto& fit = _blockeds.find(&lhs);
 
@@ -86,13 +86,13 @@ public:
 
     void detachAll(Node& node)
     {
-        for (Node* const dependee : node._dependees)
+        for (Node* const dependee : node._dependers)
         {
-            auto&& _dependers = dependee->_dependers;
+            auto&& _dependees = dependee->_dependees;
 
-            _dependers.erase(&node);
+            _dependees.erase(&node);
 
-            if (_dependers.empty())
+            if (_dependees.empty())
             {
                 _blockeds.erase(dependee);
                 _pendings.insert(dependee);
@@ -120,7 +120,7 @@ public:
         do
         {
             cycle.push_back(node);
-            node = *(node->_dependers.begin());
+            node = *(node->_dependees.begin());
         }
         while (node != cycle.front());
 
@@ -173,14 +173,12 @@ private:
 
         for (const auto depender : dependers)
         {
-            node     ._dependers.insert(depender);
-            depender->_dependees.insert(&node);
+            node     ._dependees.insert(depender);
+            depender->_dependers.insert(&node);
         }
 
         block(node);
     }
-
-    using NodeFactory = TFactory<NodeFactoryTraits>;
 
     std::unordered_set<Node*> _pendings;
     std::unordered_set<Node*> _blockeds;

@@ -18,22 +18,25 @@ namespace buffer
 namespace supervisor
 {
 
-template <class Type, std::size_t FIRST_BUFFER_SIZE = 1>
-struct TMakeTraitsFromType
+template <class SupervisorBufferTraits>
+struct TTraits
 {
-    using BufferTraits = buffer::TMakeTraitsFromType<Type, FIRST_BUFFER_SIZE>;
+    using BufferTraits = SupervisorBufferTraits;
+
+    using BufferConcrete = TBuffer<BufferTraits>;
+    using BufferAbstract = buffer::TAbstract<typename BufferTraits::Abstract>;
 };
+
+template <class Type>
+using TMakeTraitsFromType = TTraits<buffer::TMakeTraitsFromType<Type>>;
 
 } // namespace supervisor
 
 template <class SupervisorTraits>
 class TSupervisor
 {
-    using BufferConcreteTraits = typename SupervisorTraits::BufferTraits;
-    using BufferAbstractTraits = typename BufferConcreteTraits::AbstractTraits;
-
-    using BufferConcrete = TBuffer<BufferConcreteTraits>;
-    using BufferAbstract = buffer::TAbstract<BufferAbstractTraits>;
+    using BufferConcrete = typename SupervisorTraits::BufferConcrete;
+    using BufferAbstract = typename SupervisorTraits::BufferAbstract;
 
 public:
 

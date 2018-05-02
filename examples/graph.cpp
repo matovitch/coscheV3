@@ -5,8 +5,6 @@
 
 int main()
 {
-    std::cout << "Welcome to coscheV3!" << std::endl;
-
     using GraphTraits = cosche::graph::TMakeTraits<char>;
 
     using Graph = cosche::TGraph<GraphTraits>;

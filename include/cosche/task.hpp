@@ -1,6 +1,8 @@
 #pragma once
 
-#include <boost/context/execution_context.hpp>
+#include "boost/context/execution_context.hpp"
+#include "singleton.hpp"
+#include "factory.hpp"
 
 #include <functional>
 #include <optional>
@@ -9,6 +11,8 @@
 namespace cosche
 {
 
+class Scheduler;
+
 namespace scheduler
 {
 
@@ -16,19 +20,12 @@ struct Abstract;
 
 } // namespace scheduler
 
-template <class>
-class TScheduler;
-
-template<class RETURN_TYPE>
-class TTask;
-
 namespace task
 {
 
 class Abstract
 {
-    template <class>
-    friend class cosche::TScheduler;
+    friend class cosche::Scheduler;
 
 public:
 
@@ -107,6 +104,11 @@ public:
         }
 
         (*_functionOpt)();
+
+        using TaskFactoryTraits = factory::TMakeTraits<TTask<void>>;
+        using TaskFactory       = TFactory<TaskFactoryTraits>;
+
+        TSingleton<TaskFactory>::instance().recycle(this);
     }
 
 private:

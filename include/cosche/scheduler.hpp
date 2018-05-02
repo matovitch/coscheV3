@@ -19,72 +19,39 @@ namespace scheduler
 struct Abstract
 {
     virtual void pop() = 0;
-};
 
-template <std::size_t ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE = 1,
-          std::size_t CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE = 1,
-          std::size_t        FUTURE_ALLOCATOR_BUFFER_SIZE = 1>
-struct TMakeTraits
-{
-    using TaskGraphTraits = graph::TMakeTraits<task::Abstract*, ABSTRACT_TASK_ALLOCATOR_BUFFER_SIZE>;
-
-    template <class Task>
-    using TMakeTaskFactoryTraits = factory::TMakeTraits<Task, CONCRETE_TASK_ALLOCATOR_BUFFER_SIZE>;
-
-    template <class Future>
-    using TMakeFutureFactoryTraits = factory::TMakeTraits<Future, FUTURE_ALLOCATOR_BUFFER_SIZE>;
+    virtual ~Abstract();
 };
 
 } // namespace scheduler
 
-template <class SchedulerTraits = scheduler::TMakeTraits<>>
-class TScheduler : public scheduler::Abstract
+class Scheduler : public scheduler::Abstract
 {
-    using TaskGraphTraits = typename SchedulerTraits::TaskGraphTraits;
-    using TaskGraph       = TGraph<TaskGraphTraits>;
+    using TaskGraph = TGraph<graph::TMakeTraits<task::Abstract*>>;
 
-    template <class Task>
-    using TMakeTaskFactoryTraits = typename SchedulerTraits::template TMakeTaskFactoryTraits<Task>;
-
-    template <class Future>
-    using TMakeFutureFactoryTraits = typename SchedulerTraits::template TMakeFutureFactoryTraits<Future>;
-
-    template <class Future>
-    using TMakeFutureFactory = TFactory<TMakeFutureFactoryTraits<Future>>;
+    template <class Type>
+    using TMakeFactorySingleton = TSingleton<TFactory<factory::TMakeTraits<Type>>>;
 
 public:
 
     using TaskNode  = typename TaskGraph::Node;
 
-    TScheduler() : _isRunning{false} {}
+    Scheduler();
 
     template<class ReturnType>
     TaskNode& makeTask()
     {
-        using Task              = TTask<ReturnType>;
-        using TaskFactoryTraits = TMakeTaskFactoryTraits<Task>;
-        using TaskFactory       = TFactory<TaskFactoryTraits>;
+        using Task = TTask<ReturnType>;
 
-        Task& task = TSingleton<TaskFactory>::instance().make(*this);
+        Task& task = TMakeFactorySingleton<Task>::instance().make(*this);
 
         return _taskGraph.makeNode(&task);
     }
 
     void attach(TaskNode& lhs,
-                TaskNode& rhs)
-    {
-        _taskGraph.attach(lhs,
-                          rhs);
+                TaskNode& rhs);
 
-        releaseContext(lhs);
-    }
-
-    void attachBatch(TaskNode& taskNode, const std::vector<TaskNode*>& dependers)
-    {
-        _taskGraph.attachBatch(taskNode, dependers);
-
-        releaseContext(taskNode);
-    }
+    void attachBatch(TaskNode& taskNode, const std::vector<TaskNode*>& dependers);
 
     template <std::size_t BATCH_SIZE>
     void attachBatch(TaskNode& taskNode, const std::array<TaskNode*, BATCH_SIZE>& dependers)
@@ -95,36 +62,19 @@ public:
     }
 
     void detach(TaskNode& lhs,
-                TaskNode& rhs)
-    {
-        _taskGraph.detach(lhs,
-                          rhs);
-    }
+                TaskNode& rhs);
 
-    void run()
-    {
-        _isRunning = true;
-
-        while (!_taskGraph.empty() || hasFutures())
-        {
-            auto&& topTask = *(_taskGraph.top().value);
-
-            topTask._context = std::move(std::get<0>(topTask._context(&topTask)));
-        }
-
-        _isRunning = false;
-    }
+    void run();
 
     template <class ReturnType, class Rep, class Period>
     ReturnType attach(TaskNode& taskNode,
                       std::future<ReturnType>&& future,
                       const std::chrono::duration<Rep, Period>& pollingDelay)
     {
-        using Future        = TFuture<ReturnType, Rep, Period>;
-        using FutureFactory = TMakeFutureFactory<Future>;
+        using Future = TFuture<ReturnType, Rep, Period>;
 
-        auto&& theFuture = TSingleton<FutureFactory>::instance().make(std::move(future),
-                                                                      pollingDelay);
+        auto&& theFuture = TMakeFactorySingleton<Future>::instance().make(std::move(future),
+                                                                          pollingDelay);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
 
         attach(taskNode,
@@ -140,12 +90,11 @@ public:
                                      const std::chrono::duration<Rep1, Period1>& pollingDelay,
                                      const std::chrono::duration<Rep2, Period2>& timeoutDuration)
     {
-        using Future        = future::TScoped<ReturnType, Rep1, Period1>;
-        using FutureFactory = TMakeFutureFactory<Future>;
+        using Future = future::TScoped<ReturnType, Rep1, Period1>;
 
-        auto&& theFuture = TSingleton<FutureFactory>::instance().make(std::move(future),
-                                                                      pollingDelay,
-                                                                      timeoutDuration);
+        auto&& theFuture = TMakeFactorySingleton<Future>::instance().make(std::move(future),
+                                                                          pollingDelay,
+                                                                          timeoutDuration);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
 
         attach(taskNode,
@@ -158,46 +107,13 @@ public:
             std::optional<ReturnType>{};
     }
 
-    void pop() override
-    {
-        _taskGraph.pop();
-    }
+    void pop() override;
 
 private:
 
-    bool hasFutures()
-    {
-        bool returnValue = !_futuresTaskPairs.empty();
+    bool hasFutures();
 
-        for (auto&& futureTaskPair : _futuresTaskPairs)
-        {
-            const auto& [futurePtr, taskNodePtr] = futureTaskPair;
-
-            auto&& taskNode = *taskNodePtr;
-
-            if (futurePtr->ready())
-            {
-                detach(taskNode,
-                       taskNode);
-
-                futureTaskPair = _futuresTaskPairs.back();
-
-                _futuresTaskPairs.pop_back();
-            }
-        }
-
-        return returnValue;
-    }
-
-    void releaseContext(TaskNode& taskNode)
-    {
-        if (COSCHE_LIKELY(_isRunning))
-        {
-            auto&& task = *(taskNode.value);
-
-            task._context = std::move(std::get<0>(task._context(&task)));
-        }
-    }
+    void releaseContext(TaskNode& taskNode);
 
     bool                                             _isRunning;
     TaskGraph                                        _taskGraph;

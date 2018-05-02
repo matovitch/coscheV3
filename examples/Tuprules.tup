@@ -4,4 +4,8 @@ LDFLAGS += -l pthread
 LDFLAGS += -l cosche
 LDFLAGS += -L $(ROOT)
 
+ifeq (@(USE_TCMALLOC),y)
+    LDFLAGS += -l tcmalloc
+endif
+
 !ld = |> $(CX) %f $(LDFLAGS) -o %o |>

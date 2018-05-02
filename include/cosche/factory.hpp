@@ -12,11 +12,12 @@ namespace cosche
 namespace factory
 {
 
-template <class Type, std::size_t FIRST_BUFFER_SIZE = 1>
+template <class FactoryType>
 struct TMakeTraits
 {
-    using BufferSupervisorTraits = buffer::supervisor::TMakeTraitsFromType<Type, FIRST_BUFFER_SIZE>;
-    using Type_ = Type;
+    using Type                   = FactoryType;
+    using BufferSupervisorTraits = buffer::supervisor::TMakeTraitsFromType<Type>;
+    using Allocator              = buffer::TSupervisor<BufferSupervisorTraits>;
 };
 
 } // namespace factory
@@ -25,9 +26,8 @@ struct TMakeTraits
 template <class FactoryTraits>
 class TFactory
 {
-    using Type                   = typename FactoryTraits::Type_;
-    using BufferSupervisorTraits = typename FactoryTraits::BufferSupervisorTraits;
-    using Allocator              = buffer::TSupervisor<BufferSupervisorTraits>;
+    using Type               = typename FactoryTraits::Type;
+    using Allocator          = typename FactoryTraits::Allocator;
 
 public:
 

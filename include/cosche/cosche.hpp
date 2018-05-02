@@ -18,6 +18,4 @@ void assignWork(TNode<task::Abstract*>& task,
 
 void cleanUp();
 
-using Scheduler = TScheduler<>;
-
 } // namespace cosche

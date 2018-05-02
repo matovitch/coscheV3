@@ -15,7 +15,7 @@ int main()
             auto&& leafTask = scheduler.makeTask<void>();
 
             std::function<void()> leafWork =
-                [&]()
+                []()
                 {
                     std::cout << "Inside!" << std::endl;
                 };
