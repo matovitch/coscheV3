@@ -48,12 +48,12 @@ public:
     void attach(TaskNode& lhs,
                 TaskNode& rhs);
 
-    void attachBatch(TaskNode& taskNode, const std::vector<TaskNode*>& dependers);
+    void attachBatch(TaskNode& taskNode, const std::vector<TaskNode*>& dependees);
 
     template <std::size_t BATCH_SIZE>
-    void attachBatch(TaskNode& taskNode, const std::array<TaskNode*, BATCH_SIZE>& dependers)
+    void attachBatch(TaskNode& taskNode, const std::array<TaskNode*, BATCH_SIZE>& dependees)
     {
-        _taskGraph.template attachBatch<BATCH_SIZE>(taskNode, dependers);
+        _taskGraph.template attachBatch<BATCH_SIZE>(taskNode, dependees);
 
         releaseContext(taskNode);
     }

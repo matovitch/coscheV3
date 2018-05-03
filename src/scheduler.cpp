@@ -22,9 +22,9 @@ void Scheduler::attach(TaskNode& lhs,
 }
 
 void Scheduler::attachBatch(TaskNode& taskNode,
-                            const std::vector<TaskNode*>& dependers)
+                            const std::vector<TaskNode*>& dependees)
 {
-    _taskGraph.attachBatch(taskNode, dependers);
+    _taskGraph.attachBatch(taskNode, dependees);
 
     releaseContext(taskNode);
 }
