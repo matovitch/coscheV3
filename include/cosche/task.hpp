@@ -42,7 +42,6 @@ private:
 
     Context              _context;
     scheduler::Abstract& _scheduler;
-
 };
 
 } // namespace task
