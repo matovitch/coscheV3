@@ -31,7 +31,6 @@ public:
             ptr = reinterpret_cast<void*>(_recycleds.back());
             _recycleds.pop_back();
             destroy(ptr);
-            //reinterpret_cast<Type*>(ptr)->~Type();
         }
         else
         {

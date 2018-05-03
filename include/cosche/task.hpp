@@ -1,8 +1,7 @@
 #pragma once
 
 #include "boost/context/execution_context.hpp"
-#include "singleton.hpp"
-#include "factory.hpp"
+#include "factory_singleton.hpp"
 
 #include <functional>
 #include <optional>
@@ -48,7 +47,7 @@ private:
 
 } // namespace task
 
-template<class RETURN_TYPE>
+template<class ReturnType>
 class TTask : public task::Abstract
 {
 
@@ -56,7 +55,7 @@ public:
 
     TTask(scheduler::Abstract& scheduler) : task::Abstract{scheduler} {}
 
-    void assign(std::function<RETURN_TYPE()>&& function)
+    void assign(std::function<ReturnType()>&& function)
     {
         _functionOpt.emplace(std::move(function));
     }
@@ -69,17 +68,19 @@ public:
         }
 
         _promise.set_value((_functionOpt.value())());
+
+        TFactorySingleton<TTask<ReturnType>>::instance().recycle(this);
     }
 
-    std::future<RETURN_TYPE> future()
+    std::future<ReturnType> future()
     {
         return _promise.getFuture();
     }
 
 private:
 
-    std::optional<std::function<RETURN_TYPE()>> _functionOpt;
-    std::promise<RETURN_TYPE>                   _promise;
+    std::optional<std::function<ReturnType()>> _functionOpt;
+    std::promise<ReturnType>                   _promise;
 };
 
 
@@ -105,10 +106,7 @@ public:
 
         (*_functionOpt)();
 
-        using TaskFactoryTraits = factory::TMakeTraits<TTask<void>>;
-        using TaskFactory       = TFactory<TaskFactoryTraits>;
-
-        TSingleton<TaskFactory>::instance().recycle(this);
+        TFactorySingleton<TTask<void>>::instance().recycle(this);
     }
 
 private:
