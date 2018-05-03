@@ -19,7 +19,7 @@ std::function<void()> makeRecursiveWork(const unsigned stackDepth, cosche::Sched
     }
 
     return
-        [&]()
+        [stackDepth, &scheduler, &task]()
         {
             auto&& left  = scheduler.makeTask<void>();
             auto&& right = scheduler.makeTask<void>();
@@ -27,7 +27,7 @@ std::function<void()> makeRecursiveWork(const unsigned stackDepth, cosche::Sched
             cosche::assignWork(left  , makeRecursiveWork(stackDepth + 1, scheduler, left  ));
             cosche::assignWork(right , makeRecursiveWork(stackDepth + 1, scheduler, right ));
 
-            scheduler.attachBatch<2>(task, {&left, &right});
+            scheduler.attachBatch(task, {&left, &right});
 
             std::cout << "Here is a node!" << std::endl;
         };

@@ -50,13 +50,16 @@ public:
 
     void attachBatch(TaskNode& taskNode, const std::vector<TaskNode*>& dependees);
 
+    /* Due to http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#1591,
+       template deduction doesn't work with std::array. */
     template <std::size_t BATCH_SIZE>
-    void attachBatch(TaskNode& taskNode, const std::array<TaskNode*, BATCH_SIZE>& dependees)
+    void attachBatch(TaskNode& taskNode, TaskNode* const (&dependees)[BATCH_SIZE])
     {
-        _taskGraph.template attachBatch<BATCH_SIZE>(taskNode, dependees);
+        _taskGraph.attachBatch(taskNode, dependees);
 
         releaseContext(taskNode);
     }
+
 
     void detach(TaskNode& lhs,
                 TaskNode& rhs);

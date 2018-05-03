@@ -45,13 +45,31 @@ public:
 
     void attachBatch(Node& node, const std::vector<Node*>& dependees)
     {
-        attachBatch<std::vector<Node*>>(node, dependees);
+        if (COSCHE_UNLIKELY(dependees.empty()))
+        {
+            return;
+        }
+
+        for (const auto dependee : dependees)
+        {
+            node     ._dependees.insert(dependee);
+            dependee->_dependers.insert(&node);
+        }
+
+        block(node);
     }
 
     template <std::size_t BATCH_SIZE>
-    void attachBatch(Node& node, const std::array<Node*, BATCH_SIZE>& dependees)
+    void attachBatch(Node& node, Node* const (&dependees)[BATCH_SIZE])
     {
-        attachBatch<std::array<Node*, BATCH_SIZE>>(node, dependees);
+        for (std::size_t i = 0; i < BATCH_SIZE; i++)
+        {
+            Node* const dependee = dependees[i];
+            node     ._dependees.insert(dependee);
+            dependee->_dependers.insert(&node);
+        }
+
+        block(node);
     }
 
     void detach(Node& lhs,
@@ -149,23 +167,6 @@ private:
             _pendings.erase(fit);
             _blockeds.insert(&node);
         }
-    }
-
-    template <class NODE_PTR_CONTAINER>
-    void attachBatch(Node& node, const NODE_PTR_CONTAINER& dependees)
-    {
-        if (COSCHE_UNLIKELY(dependees.empty()))
-        {
-            return;
-        }
-
-        for (const auto dependee : dependees)
-        {
-            node     ._dependees.insert(dependee);
-            dependee->_dependers.insert(&node);
-        }
-
-        block(node);
     }
 
     std::unordered_set<Node*> _pendings;
