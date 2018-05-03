@@ -29,7 +29,6 @@ struct TAbstract
 
 } // namespace buffer
 
-
 template <class BufferTraits>
 class TBuffer : public buffer::TAbstract<typename BufferTraits::Abstract>
 {
