@@ -5,11 +5,7 @@
 
 int main()
 {
-    using GraphTraits = cosche::graph::TMakeTraits<char>;
-
-    using Graph = cosche::TGraph<GraphTraits>;
-
-    Graph graph;
+    cosche::TGraph<char> graph;
 
     auto&& nodeA = graph.makeNode('a');
     auto&& nodeB = graph.makeNode('b');

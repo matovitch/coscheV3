@@ -15,11 +15,11 @@ namespace cosche
 namespace buffer
 {
 
-template <class SupervisorTraits>
+template <class BufferType>
 class TSupervisor
 {
-    using BufferConcrete = typename SupervisorTraits::BufferConcrete;
-    using BufferAbstract = typename SupervisorTraits::BufferAbstract;
+    using BufferConcrete =          BufferType;
+    using BufferAbstract = typename BufferType::BufferAbstract;
 
 public:
 
@@ -57,18 +57,8 @@ private:
 namespace supervisor
 {
 
-template <class BufferType>
-struct TTraits
-{
-    using BufferConcrete =          BufferType;
-    using BufferAbstract = typename BufferType::BufferAbstract;
-};
-
 template <class Type>
-using TMakeTraitsFromType = TTraits<buffer::TMakeFromType<Type>>;
-
-template <class Type>
-using TMakeFromType = TSupervisor<TMakeTraitsFromType<Type>>;
+using TMakeFromType = TSupervisor<buffer::TMakeFromType<Type>>;
 
 } // namespace supervisor
 

@@ -7,6 +7,6 @@ namespace cosche
 {
 
 template <class Type>
-using TFactorySingleton = TSingleton<factory::TMake<Type>>;
+using TFactorySingleton = TSingleton<TFactory<Type>>;
 
 } // namespace cosche

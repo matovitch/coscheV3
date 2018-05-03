@@ -11,26 +11,14 @@
 namespace cosche
 {
 
-namespace graph
-{
-
-template <class Type>
-struct TMakeTraits
-{
-    using Node = TNode<Type>;
-    using NodeFactory = factory::TMake<Node>;
-};
-
-} // namespace graph
-
-template <class GraphTraits>
+template <class GraphType>
 class TGraph
 {
-    using NodeFactory = typename GraphTraits::NodeFactory;
 
 public:
 
-    using Node = typename GraphTraits::Node;
+    using Type = GraphType;
+    using Node = TNode<Type>;
 
     TGraph() :
         _nodeFactory{TSingleton<NodeFactory>::instance()}
@@ -182,6 +170,8 @@ private:
 
     std::unordered_set<Node*> _pendings;
     std::unordered_set<Node*> _blockeds;
+
+    using NodeFactory = TFactory<Node>;
 
     NodeFactory& _nodeFactory;
 };

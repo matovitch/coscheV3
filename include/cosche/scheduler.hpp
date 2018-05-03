@@ -27,7 +27,7 @@ struct Abstract
 
 class Scheduler : public scheduler::Abstract
 {
-    using TaskGraph = TGraph<graph::TMakeTraits<task::Abstract*>>;
+    using TaskGraph = TGraph<task::Abstract*>;
 
 public:
 

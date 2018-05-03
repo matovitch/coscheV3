@@ -9,11 +9,11 @@
 namespace cosche
 {
 
-template <class FactoryTraits>
+template <class FactoryType>
 class TFactory
 {
-    using Type      = typename FactoryTraits::Type;
-    using Allocator = typename FactoryTraits::Allocator;
+    using Type      = FactoryType;
+    using Allocator = buffer::supervisor::TMakeFromType<Type>;
 
 public:
 
@@ -62,21 +62,5 @@ private:
     Allocator&         _allocator;
     std::vector<Type*> _recycleds;
 };
-
-namespace factory
-{
-
-template <class FactoryType>
-struct TMakeTraits
-{
-    using Type      = FactoryType;
-    using Allocator = buffer::supervisor::TMakeFromType<Type>;
-};
-
-template <class Type>
-using TMake = TFactory<TMakeTraits<Type>>;
-
-}
-
 
 } // namespace cosche
