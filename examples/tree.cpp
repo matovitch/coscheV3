@@ -7,7 +7,7 @@ static constexpr unsigned TREE_DEPTH = 2;
 
 using TaskNode = typename cosche::Scheduler::TaskNode;
 
-std::function<void()> makeRecursiveWork(const unsigned stackDepth, cosche::Scheduler& scheduler, TaskNode* const task)
+std::function<void()> makeRecursiveWork(const unsigned stackDepth, cosche::Scheduler& scheduler, TaskNode& task)
 {
     if (stackDepth == TREE_DEPTH)
     {
@@ -19,15 +19,15 @@ std::function<void()> makeRecursiveWork(const unsigned stackDepth, cosche::Sched
     }
 
     return
-        [stackDepth, &scheduler, task]()
+        [&]()
         {
             auto&& left  = scheduler.makeTask<void>();
             auto&& right = scheduler.makeTask<void>();
 
-            cosche::assignWork(left  , makeRecursiveWork(stackDepth + 1, scheduler, &left  ));
-            cosche::assignWork(right , makeRecursiveWork(stackDepth + 1, scheduler, &right ));
+            cosche::assignWork(left  , makeRecursiveWork(stackDepth + 1, scheduler, left  ));
+            cosche::assignWork(right , makeRecursiveWork(stackDepth + 1, scheduler, right ));
 
-            scheduler.attachBatch<2>(*task, {&left, &right});
+            scheduler.attachBatch<2>(task, {&left, &right});
 
             std::cout << "Here is a node!" << std::endl;
         };
@@ -39,7 +39,7 @@ int main()
 
     auto&& rootTask = scheduler.makeTask<void>();
 
-    auto&& rootWork = makeRecursiveWork(0, scheduler, &rootTask);
+    auto&& rootWork = makeRecursiveWork(0, scheduler, rootTask);
 
     cosche::assignWork(rootTask, std::move(rootWork));
 
