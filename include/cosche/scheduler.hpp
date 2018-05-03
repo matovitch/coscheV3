@@ -1,7 +1,7 @@
 #pragma once
 
+#include "factory_singleton.hpp"
 #include "future_task_pair.hpp"
-#include "factory.hpp"
 #include "future.hpp"
 #include "graph.hpp"
 #include "task.hpp"
@@ -29,9 +29,6 @@ class Scheduler : public scheduler::Abstract
 {
     using TaskGraph = TGraph<graph::TMakeTraits<task::Abstract*>>;
 
-    template <class Type>
-    using TMakeFactorySingleton = TSingleton<TFactory<factory::TMakeTraits<Type>>>;
-
 public:
 
     using TaskNode  = typename TaskGraph::Node;
@@ -43,7 +40,7 @@ public:
     {
         using Task = TTask<ReturnType>;
 
-        Task& task = TMakeFactorySingleton<Task>::instance().make(*this);
+        Task& task = TFactorySingleton<Task>::instance().make(*this);
 
         return _taskGraph.makeNode(&task);
     }
@@ -73,8 +70,8 @@ public:
     {
         using Future = TFuture<ReturnType, Rep, Period>;
 
-        auto&& theFuture = TMakeFactorySingleton<Future>::instance().make(std::move(future),
-                                                                          pollingDelay);
+        auto&& theFuture = TFactorySingleton<Future>::instance().make(std::move(future),
+                                                                      pollingDelay);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
 
         attach(taskNode,
@@ -92,9 +89,9 @@ public:
     {
         using Future = future::TScoped<ReturnType, Rep1, Period1>;
 
-        auto&& theFuture = TMakeFactorySingleton<Future>::instance().make(std::move(future),
-                                                                          pollingDelay,
-                                                                          timeoutDuration);
+        auto&& theFuture = TFactorySingleton<Future>::instance().make(std::move(future),
+                                                                      pollingDelay,
+                                                                      timeoutDuration);
         _futuresTaskPairs.emplace_back(&theFuture, &taskNode);
 
         attach(taskNode,

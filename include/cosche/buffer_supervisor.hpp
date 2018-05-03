@@ -15,23 +15,6 @@ namespace cosche
 namespace buffer
 {
 
-namespace supervisor
-{
-
-template <class SupervisorBufferTraits>
-struct TTraits
-{
-    using BufferTraits = SupervisorBufferTraits;
-
-    using BufferConcrete = TBuffer<BufferTraits>;
-    using BufferAbstract = buffer::TAbstract<typename BufferTraits::Abstract>;
-};
-
-template <class Type>
-using TMakeTraitsFromType = TTraits<buffer::TMakeTraitsFromType<Type>>;
-
-} // namespace supervisor
-
 template <class SupervisorTraits>
 class TSupervisor
 {
@@ -70,6 +53,24 @@ private:
 
     std::vector<std::unique_ptr<BufferAbstract>> _buffers;
 };
+
+namespace supervisor
+{
+
+template <class BufferType>
+struct TTraits
+{
+    using BufferConcrete =          BufferType;
+    using BufferAbstract = typename BufferType::BufferAbstract;
+};
+
+template <class Type>
+using TMakeTraitsFromType = TTraits<buffer::TMakeFromType<Type>>;
+
+template <class Type>
+using TMakeFromType = TSupervisor<TMakeTraitsFromType<Type>>;
+
+} // namespace supervisor
 
 } // namespace buffer
 

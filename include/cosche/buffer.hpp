@@ -27,32 +27,6 @@ struct TAbstract
     virtual ~TAbstract() {}
 };
 
-template <std::size_t BUFFER_BLOCK_SIZE,
-          std::size_t BUFFER_BLOCK_ALIGN>
-struct AbstractTraits
-{
-    static constexpr std::size_t BLOCK_SIZE  = BUFFER_BLOCK_SIZE;
-    static constexpr std::size_t BLOCK_ALIGN = BUFFER_BLOCK_ALIGN;
-};
-
-template <std::size_t BUFFER_BLOCK_SIZE,
-          std::size_t BUFFER_BLOCK_ALIGN,
-          std::size_t BUFFER_SIZE>
-struct TTraits
-{
-    static constexpr std::size_t SIZE = BUFFER_SIZE + 1;
-
-    using Abstract = AbstractTraits<BUFFER_BLOCK_SIZE,
-                                    BUFFER_BLOCK_ALIGN>;
-
-    using Next = TTraits<BUFFER_BLOCK_SIZE,
-                         BUFFER_BLOCK_ALIGN,
-                         std::min(SIZE << 1, MAX_SIZE)>;
-};
-
-template <class Type>
-using TMakeTraitsFromType = TTraits< sizeof(Type),
-                                    alignof(Type), 1>;
 } // namespace buffer
 
 
@@ -63,10 +37,11 @@ class TBuffer : public buffer::TAbstract<typename BufferTraits::Abstract>
     static constexpr std::size_t ALIGNOF   = BufferTraits::Abstract::BLOCK_ALIGN;
     static constexpr std::size_t BYTE_SIZE = BufferTraits::SIZE * SIZEOF;
 
-    using BufferAbstract = buffer::TAbstract < typename BufferTraits::Abstract >;
-    using BufferNext     = TBuffer           < typename BufferTraits::Next     >;
+    using BufferNext = TBuffer<typename BufferTraits::Next>;
 
 public:
+
+    using BufferAbstract = buffer::TAbstract<typename BufferTraits::Abstract>;
 
     TBuffer() : _tail{_data.data() + BYTE_SIZE}
     {
@@ -119,5 +94,40 @@ private:
     std::array<uint8_t, BYTE_SIZE> _data;
     const uint8_t* const           _tail;
 };
+
+namespace buffer
+{
+
+template <std::size_t BUFFER_BLOCK_SIZE,
+          std::size_t BUFFER_BLOCK_ALIGN>
+struct AbstractTraits
+{
+    static constexpr std::size_t BLOCK_SIZE  = BUFFER_BLOCK_SIZE;
+    static constexpr std::size_t BLOCK_ALIGN = BUFFER_BLOCK_ALIGN;
+};
+
+template <std::size_t BUFFER_BLOCK_SIZE,
+          std::size_t BUFFER_BLOCK_ALIGN,
+          std::size_t BUFFER_SIZE>
+struct TTraits
+{
+    static constexpr std::size_t SIZE = BUFFER_SIZE + 1;
+
+    using Abstract = AbstractTraits<BUFFER_BLOCK_SIZE,
+                                    BUFFER_BLOCK_ALIGN>;
+
+    using Next = TTraits<BUFFER_BLOCK_SIZE,
+                         BUFFER_BLOCK_ALIGN,
+                         std::min(SIZE << 1, MAX_SIZE)>;
+};
+
+template <class Type>
+using TMakeTraitsFromType = TTraits< sizeof(Type),
+                                    alignof(Type), 1>;
+
+template <class Type>
+using TMakeFromType = TBuffer<TMakeTraitsFromType<Type>>;
+
+} // namespace buffer
 
 } // namespace cosche

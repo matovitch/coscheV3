@@ -18,7 +18,7 @@ template <class Type>
 struct TMakeTraits
 {
     using Node = TNode<Type>;
-    using NodeFactory = TFactory<factory::TMakeTraits<Node>>;
+    using NodeFactory = factory::TMake<Node>;
 };
 
 } // namespace graph
