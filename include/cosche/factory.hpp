@@ -17,10 +17,6 @@ class TFactory
 
 public:
 
-    TFactory() :
-        _allocator{TSingleton<Allocator>::instance()}
-    {}
-
     template <class... ARGS>
     Type& make(ARGS&&... args)
     {
@@ -59,8 +55,12 @@ private:
         reinterpret_cast<Type*>(ptr)->~Type();
     }
 
-    Allocator&         _allocator;
     std::vector<Type*> _recycleds;
+
+    static Allocator   _allocator;
 };
+
+template <class Type>
+typename TFactory<Type>::Allocator TFactory<Type>::_allocator;
 
 } // namespace cosche
