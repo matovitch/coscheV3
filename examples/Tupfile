@@ -1,7 +1,4 @@
 include_rules
 
-CPPS = $(EXAMPLES)/*.cpp
-OBJS = $(EXAMPLES)/*.o
-
-: foreach $(CPPS)               |> !cx |> %B.o
-: foreach $(OBJS) | ../<cosche> |> !ld |> %B ../<examples>
+: foreach $(EXAMPLES_SRC)                 |> !cx |> %B.o
+: foreach $(EXAMPLES_OBJ) | $(ROOT)/<src> |> !ld |> %B $(ROOT)/<examples>

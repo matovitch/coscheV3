@@ -1,10 +1,14 @@
 EXAMPLES = $(ROOT)/examples
+SRC      = $(ROOT)/src
+
+EXAMPLES_SRC = $(EXAMPLES)/*.cpp
+EXAMPLES_OBJ = $(EXAMPLES)/*.o
 
 LDFLAGS += -l pthread
 LDFLAGS += -l cosche
-LDFLAGS += -L $(ROOT)
+LDFLAGS += -L $(SRC)
 
-ifeq (@(USE_TCMALLOC),y)
+ifeq (@(USE_TCMALLOC), y)
     LDFLAGS += -l tcmalloc
 endif
 

@@ -1,0 +1,3 @@
+BOOST_CONTEXT = $(SRC)/boost/context
+
+BOOST_CONTEXT_SRC = $(BOOST_CONTEXT)/execution_context.cpp
