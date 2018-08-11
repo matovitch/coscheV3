@@ -9,10 +9,9 @@
 namespace cosche
 {
 
-template <class FactoryType>
+template <class Type>
 class TFactory
 {
-    using Type      = FactoryType;
     using Allocator = buffer::supervisor::TMakeFromType<Type>;
 
 public:
@@ -30,7 +29,7 @@ public:
         }
         else
         {
-            ptr = _allocator.allocateBlock();
+            ptr = _allocator.allocateBucket();
         }
 
         new(ptr) Type(std::forward<ARGS>(args)...);

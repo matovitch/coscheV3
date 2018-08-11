@@ -1,3 +1,5 @@
 - Use a proper stack allocator for boost::execution_context
-- Make a small set optimization for the task graph
+- Make a small set optimization for the task graph (done ?)
 - Support raw functors to avoir std::bind/std::function penalty
+- Why an abstract scheduler ??
+- Inspire from libaco to remove boost_context dependency

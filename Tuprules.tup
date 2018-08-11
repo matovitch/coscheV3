@@ -6,6 +6,7 @@ CXFLAGS += -std=c++17
 CXFLAGS += -Wall
 
 ifeq (@(DEBUG),y)
+    CXFLAGS += -DBOOST_USE_VALGRIND
     CXFLAGS += -g
 else
     CXFLAGS += -O3

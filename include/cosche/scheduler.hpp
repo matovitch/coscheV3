@@ -10,6 +10,8 @@
 #include <vector>
 #include <chrono>
 
+#include <iostream>
+
 namespace cosche
 {
 

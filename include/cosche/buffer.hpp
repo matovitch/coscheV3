@@ -2,127 +2,86 @@
 
 #include "likelyhood.hpp"
 
+#include <type_traits>
 #include <functional>
 #include <cstdint>
 #include <memory>
-#include <array>
 
 namespace cosche
 {
 
-namespace buffer
-{
-
-static constexpr std::size_t MAX_SIZE = 1 << 0x10;
-
-template <class AbstractTraits>
-struct TAbstract
-{
-    virtual void* allocateBlock() = 0;
-
-    virtual std::unique_ptr<TAbstract<AbstractTraits>> makeBufferNext() const = 0;
-
-    virtual void clean(const std::function<void(void*)>& destructor) = 0;
-
-    virtual ~TAbstract() {}
-};
-
-} // namespace buffer
-
 template <class BufferTraits>
-class TBuffer : public buffer::TAbstract<typename BufferTraits::Abstract>
+class TBuffer
 {
-    static constexpr std::size_t SIZEOF    = BufferTraits::Abstract::BLOCK_SIZE;
-    static constexpr std::size_t ALIGNOF   = BufferTraits::Abstract::BLOCK_ALIGN;
-    static constexpr std::size_t BYTE_SIZE = BufferTraits::SIZE * SIZEOF;
-
-    using BufferNext = TBuffer<typename BufferTraits::Next>;
+    using Bucket = typename BufferTraits::Bucket;
+    using Buffer = typename BufferTraits::Buffer;
 
 public:
 
-    using BufferAbstract = buffer::TAbstract<typename BufferTraits::Abstract>;
+    TBuffer(const std::size_t size = 1) :
+        _head{new Bucket[size]},
+        _tail{_head + size},
+        _data{_head}
+    {}
 
-    TBuffer() : _tail{_data.data() + BYTE_SIZE}
+    void* allocateBucket()
     {
-        _head = pointerToFirstBlock();
-    }
-
-    void* allocateBlock() override
-    {
-        if (COSCHE_UNLIKELY(_tail - _head < SIZEOF))
+        if (COSCHE_UNLIKELY(_tail == _head))
         {
             return nullptr;
         }
 
         void* const typePtr = reinterpret_cast<void*>(_head);
 
-        _head += SIZEOF;
+        _head++;
 
         return typePtr;
     }
 
-    virtual std::unique_ptr<BufferAbstract> makeBufferNext() const override
+    std::unique_ptr<Buffer> makeNext() const
     {
-        return std::make_unique<BufferNext>();
+        return std::make_unique<Buffer>((_tail - _data) << 1);
     }
 
-    void clean(const std::function<void(void*)>& destructor) override
+    void clean(const std::function<void(void*)>& destructor)
     {
-        uint8_t* head = pointerToFirstBlock();
+        Bucket* head = _data;
 
         while (head != _head)
         {
-            destructor(head);
-            head += SIZEOF;
+            destructor(reinterpret_cast<void*>(head));
+            head++;
         }
+    }
+
+    ~TBuffer()
+    {
+        delete[] _data;
     }
 
 private:
 
-    uint8_t* pointerToFirstBlock()
-    {
-        const std::size_t shift = reinterpret_cast<std::size_t>(_data.data()) % ALIGNOF;
-
-        uint8_t* const dataPtr = _data.data();
-
-        return (shift) ? dataPtr + ALIGNOF - shift
-                       : dataPtr;
-    }
-
-    uint8_t*                       _head;
-    std::array<uint8_t, BYTE_SIZE> _data;
-    const uint8_t* const           _tail;
+          Bucket*       _head;
+    const Bucket* const _tail;
+          Bucket* const _data;
 };
 
 namespace buffer
 {
 
-template <std::size_t BUFFER_BLOCK_SIZE,
-          std::size_t BUFFER_BLOCK_ALIGN>
-struct AbstractTraits
-{
-    static constexpr std::size_t BLOCK_SIZE  = BUFFER_BLOCK_SIZE;
-    static constexpr std::size_t BLOCK_ALIGN = BUFFER_BLOCK_ALIGN;
-};
-
-template <std::size_t BUFFER_BLOCK_SIZE,
-          std::size_t BUFFER_BLOCK_ALIGN,
-          std::size_t BUFFER_SIZE>
+template <std::size_t SIZEOF,
+          std::size_t ALIGNOF>
 struct TTraits
 {
-    static constexpr std::size_t SIZE = BUFFER_SIZE + 1;
+    using Bucket = std::aligned_storage_t <SIZEOF, ALIGNOF>;
 
-    using Abstract = AbstractTraits<BUFFER_BLOCK_SIZE,
-                                    BUFFER_BLOCK_ALIGN>;
-
-    using Next = TTraits<BUFFER_BLOCK_SIZE,
-                         BUFFER_BLOCK_ALIGN,
-                         std::min(SIZE << 1, MAX_SIZE)>;
+    using Traits = TTraits<SIZEOF, ALIGNOF>;
+    using Buffer = TBuffer<Traits>;
 };
 
 template <class Type>
-using TMakeTraitsFromType = TTraits< sizeof(Type),
-                                    alignof(Type), 1>;
+using TMakeTraitsFromType = TTraits<sizeof  (Type),
+                                    alignof (Type)>;
 
 template <class Type>
 using TMakeFromType = TBuffer<TMakeTraitsFromType<Type>>;

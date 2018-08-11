@@ -1,6 +1,9 @@
 #pragma once
 
+#include "robin/table.hpp"
+
 #include <unordered_set>
+#include <functional>
 #include <cstddef>
 
 namespace cosche
@@ -9,7 +12,7 @@ namespace cosche
 template <class>
 class TGraph;
 
-template <class TYPE>
+template <class Type>
 class TNode
 {
     template <class>
@@ -17,15 +20,18 @@ class TNode
 
 private:
 
-    std::unordered_set<TNode<TYPE>*> _dependers;
-    std::unordered_set<TNode<TYPE>*> _dependees;
+    using NodeSetTraits = robin::table::TTraits<TNode<Type>*, std::hash<TNode<Type>*>, std::equal_to<TNode<Type>*>, 2, 4>;
+    using NodeSet       = robin::TTable<NodeSetTraits>; /*std::unordered_set<TNode<Type>*>*/
+
+    NodeSet _dependers;
+    NodeSet _dependees;
 
 public:
 
     template <class... ARGS>
     TNode(ARGS&&... args) : value{args...} {}
 
-    TYPE value;
+    Type value;
 };
 
 } // namespace cosche
