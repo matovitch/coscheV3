@@ -43,8 +43,6 @@ public:
 
     void rehash()
     {
-        //std::cout << "Rehash." << std::endl;
-
         const Bucket* const oldBuckets  = _buckets;
         const std::size_t   oldCapacity = _capacity;
 
@@ -112,8 +110,6 @@ public:
                 goto REDO;
             }
 
-            //std::cout << "Emplace1: " << head << " " << int(dib) << " " << t << " " << int(_hasher(t) & _mask) << std::endl;
-
             head->fill(dib, std::move(t));
         }   
         else
@@ -123,8 +119,6 @@ public:
                 // Copy the value of the found bucket and insert our own
                 Type tTmp = std::move(head->value());
                 const uint8_t dibTmp = head->dib();
-
-                //std::cout << "Emplace2: " << head << " " << int(dib) << " " << t << " " << int(_hasher(t) & _mask) << std::endl;
 
                 head->fill(dib, std::move(t));
 
@@ -220,25 +214,18 @@ private:
 
     void shiftBuckets(Bucket* prec)
     {
-        //std::cout << "Erase1: " << prec << " " << int(prec->dib()) << " " << prec->value() << " " << int(_hasher(prec->value()) & _mask) << std::endl;
-
         Bucket* succ = (prec + 1 == _buckets + _capacity) ? _buckets : prec + 1;
 
         // Shift the right-adjacent buckets to the left
         while (succ->dib() > Bucket::FILLED)
         {
-            //std::cout << "Loop... " << prec << " " << int(succ->dib() - 1) << " " << succ->value() << " " << int(_hasher(succ->value()) & _mask) << std::endl;
             prec->fill(succ->dib() - 1, std::move(succ->value()));
             prec = succ;
             succ = (++succ == _buckets + _capacity) ? _buckets : succ;
         }
 
-        ////std::cout << "Erase2: " << prec << " " << int(prec->dib()) << " " << prec->value() << std::endl;
-
         // Empty the bucket and decrement the size
         prec->markEmpty();
-
-        //std::cout << "Erase2: " << prec << " " << int(prec->dib()) << " " << prec->value() << " " << int(_hasher(prec->value()) & _mask) << std::endl;
 
         _size--;
     }
@@ -252,12 +239,6 @@ private:
         {
             bucketPtr++;
         }
-
-        //std::cout << "Begin0: " << table._size << std::endl;
-
-        //std::cout << "Begin1: " << int(bucketPtr - table._buckets) << " " << table._capacity << std::endl;
-
-        //std::cout << "Begin2: " << bucketPtr << " " << int(bucketPtr->dib()) << " " << bucketPtr->value() << " " << int(table._hasher(bucketPtr->value()) & table._mask) << std::endl;
 
         return Iterator{bucketPtr};
     }

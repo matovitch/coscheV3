@@ -85,7 +85,8 @@ public:
         do
         {
             _bucketPtr++;
-        } while (!_bucketPtr->isFilled());
+
+        } while (_bucketPtr->isEmpty());
         // we skipped the empty buckets ! Hoora !
         return *this;
     }
