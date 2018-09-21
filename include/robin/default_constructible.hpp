@@ -6,7 +6,7 @@
 namespace robin
 {
 
-template <typename Type>
+template <class Type>
 union DefaultConstructible
 {
 
